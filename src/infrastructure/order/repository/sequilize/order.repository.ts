@@ -78,15 +78,21 @@ export default class OrderRepository implements OrderRepositoryInterface {
       throw new Error("Order not found");
     }
 
-    const orderItem = new OrderItem(
-      orderModel.items[0].id,
-      orderModel.items[0].name,
-      orderModel.items[0].price,
-      orderModel.items[0].product_id,
-      2
-    );
+    let orderItem: OrderItem[] = [];
 
-    const order = new Order(id, orderModel.customer_id, [orderItem]);
+   orderModel.items.map((item) => {
+    orderItem.push(
+      new OrderItem(
+        item.id,
+        item.name,
+        item.price,
+        item.product_id,
+        2
+      )
+    ); 
+   });
+
+    const order = new Order(id, orderModel.customer_id, orderItem);
     return order;
   };
 
@@ -99,8 +105,6 @@ export default class OrderRepository implements OrderRepositoryInterface {
     } catch (error) {
       throw new Error("Order not found");
     }
-
-    let orderItem: OrderItem[] = [];
 
     const order = orderModel.map((order) => {
      const itens = order.items.map((item) => {
