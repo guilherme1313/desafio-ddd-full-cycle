@@ -83,7 +83,7 @@ describe("Order repository test", () => {
   });
 
   it("should update a order", async () => {
-const customerRepository = new CustomerRepository();
+    const customerRepository = new CustomerRepository();
     const customer = new Customer("123", "Customer 1");
     const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
     customer.changeAddress(address);
@@ -107,7 +107,7 @@ const customerRepository = new CustomerRepository();
     await orderRepository.create(order);
 
     const orderItem2 = new OrderItem(
-            "1",
+            "2",
             product.name,
             product.price,
             product.id,
@@ -116,13 +116,26 @@ const customerRepository = new CustomerRepository();
 
     order.changeItens([orderItem2]);
     
-    orderRepository.update(order);
+    await orderRepository.update(order);
 
     const orderModel = await OrderModel.findOne({
       where: { id: order.id },
+      include: ['items']
     });
 
-    expect(order).toStrictEqual(orderModel);
+    expect(orderModel.toJSON()).toStrictEqual({
+      id: order.id,
+      customer_id: order.customerId,
+      total: order.total(),
+      items: order.items.map(item => ({
+        id: item.id, 
+        order_id: order.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        name: item.name,
+        price: item.price,
+      })),
+    });
   });
 
   it("should find a order", async () => {

@@ -25,44 +25,41 @@ export default class OrderRepository implements OrderRepositoryInterface {
     );
   }
 
-  async update(entity: Order): Promise<void>{
-    await OrderModel.update(
-      {
-        customer_id: entity.customerId,
-        total: entity.total(),
-        items: entity.items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          product_id: item.productId,
-          quantity: item.quantity,
-        })),
-      },
-      {
-        where: {
-          id: entity.id,
+  async update(entity: Order): Promise<void> {
+    try {
+      await OrderModel.update(
+        {
+          customer_id: entity.customerId,
+          total: entity.total(),
         },
-      }
-    );
-
-    await Promise.all(
-      entity.items.map(async (item) => {
-        await OrderItemModel.update(
-          {
-            product_id: item.productId,
-            quantity: item.quantity,
-            name: item.name,
-            price: item.price,
+        {
+          where: {
+            id: entity.id,
           },
-          {
-            where: {
-              id: item.id,
-            },
-          }
-        );
-      })
-    );
-  };
+        }
+      );
+
+      await OrderItemModel.destroy({
+        where: {
+          order_id: entity.id,
+        },
+      });
+
+      await OrderItemModel.bulkCreate(entity.items.map(item => ({
+        id: item.id,
+        order_id: entity.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        name: item.name,
+        price: item.price,
+      })));
+
+    } catch (error) {
+      console.error("Erro ao atualizar pedido:", error);
+      throw error;
+    }
+  }
+  
 
   async find(id: string): Promise<Order>{
     let orderModel;
