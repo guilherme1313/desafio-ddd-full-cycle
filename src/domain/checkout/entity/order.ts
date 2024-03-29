@@ -13,6 +13,10 @@ export default class Order {
     this.validate();
   }
 
+  changeItens(items: OrderItem[]){
+    this._items = items;
+  }
+
   get id(): string {
     return this._id;
   }
