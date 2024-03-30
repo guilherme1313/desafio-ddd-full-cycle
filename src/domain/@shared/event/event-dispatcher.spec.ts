@@ -1,8 +1,10 @@
+import Customer from "../../customer/entity/customer";
 import CustomerChangeAddressEvent from "../../customer/event/customer-change-address.event";
 import CustomerCreatedEvent from "../../customer/event/customer-created.event";
 import EnviaConsoleLogHandlerChangeAdrress from "../../customer/event/handler/customer-change-address.handler";
 import EnviaConsoleLog1Handler from "../../customer/event/handler/envia-console-log1.handler";
 import EnviaConsoleLog2Handler from "../../customer/event/handler/envia-console-log2.handler";
+import Address from "../../customer/value-object/address";
 import SendEmailWhenProductIsCreatedHandler from "../../product/event/handler/send-email-when-product-is-created.handler";
 import ProductCreatedEvent from "../../product/event/product-created.event";
 import EventDispatcher from "./event-dispatcher";
@@ -302,10 +304,16 @@ describe("Domain events tests", () => {
       eventDispatcher.getEventHandlers["CustomerChangeAddressEvent"][0]
     ).toMatchObject(eventHandler);
 
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("123", 1, "1234567", "XYZ");
+    customer.Address = address;
+    const address2 = new Address("12345", 2, "111111", "ABC");
+    customer.changeAddress(address2);
+
     const customerChangeAddressEvent = new CustomerChangeAddressEvent({
-      id: "1",
-      nome: "Teste",
-      endereco: "Avenida X, numero 10, bairro XYZ",
+      id: customer.id,
+      nome: customer.name,
+      endereco: `Street: ${customer.Address.street}, Number: ${customer.Address.number}, Zipcode: ${customer.Address.zip}, City: ${customer.Address.city}`,
     });
 
     eventDispatcher.notify(customerChangeAddressEvent);
