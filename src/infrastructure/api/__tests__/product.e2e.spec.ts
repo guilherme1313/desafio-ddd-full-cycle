@@ -1,0 +1,64 @@
+import { app, sequelize } from "../express";
+import request from "supertest";
+
+describe("E2E test for product", () => {
+  beforeEach(async () => {
+    await sequelize.sync({ force: true });
+  });
+
+  afterAll(async () => {
+    await sequelize.close();
+  });
+
+  it("should create a product", async () => {
+    const response = await request(app)
+      .post("/product")
+      .send({
+        name: "teste",
+        price: 10.5
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBeDefined();
+    expect(response.body.name).toBe("teste");
+    expect(response.body.price).toBe(10.5);
+  });
+
+  it("should not create a product", async () => {
+    const response = await request(app).post("/product").send({
+      name: "teste",
+    });
+    expect(response.status).toBe(500);
+  });
+
+  it("should list all product", async () => {
+    const response1 = await request(app)
+    .post("/product")
+    .send({
+      name: "teste 1",
+      price: 10.5
+    });
+
+   expect(response1.status).toBe(200);
+
+   const response2 = await request(app)
+   .post("/product")
+   .send({
+     name: "teste 2",
+     price: 11.99
+   });
+
+  expect(response2.status).toBe(200);
+
+    const listResponse = await request(app).get("/product").send();
+
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body.products.length).toBe(2);
+    expect(listResponse.body.products[0].id).toBeDefined();
+    expect(listResponse.body.products[0].name).toBe("teste 1");
+    expect(listResponse.body.products[0].price).toBe(10.5);
+    expect(listResponse.body.products[1].id).toBeDefined();
+    expect(listResponse.body.products[1].name).toBe("teste 2");
+    expect(listResponse.body.products[1].price).toBe(11.99);
+  });
+});
